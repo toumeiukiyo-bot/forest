@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A Little Forest Greeting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+        "SF Pro Text", "PingFang SC", "Microsoft Yahei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% -10%, #2c304f 0%, #090913 55%, #050509 100%);
+      color: #f7f5f0;
+      padding: 16px;
+    }
+
+    .frame {
+      width: min(900px, 100%);
+      border-radius: 28px;
+      background: radial-gradient(circle at 50% 0%, #333857 0, #161827 40%, #05050c 100%);
+      box-shadow:
+        0 26px 80px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .header {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(240, 235, 225, 0.75);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .header-right {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      opacity: 0.8;
+    }
+
+    .forest-wrapper {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      position: relative;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 点击指示 */
+    .hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: rgba(245, 238, 226, 0.78);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: rgba(9, 9, 16, 0.65);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      z-index: 4;
+    }
+
+    /* 中间浅色贺卡区域 */
+    .card-panel {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      width: min(520px, 88%);
+      padding: 16px 22px 18px;
+      border-radius: 24px;
+      background: radial-gradient(circle at 50% 0%, #fbf4e8 0%, #f0e4d1 40%, #e6d7c3 100%);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(185, 162, 129, 0.6);
+      z-index: 3;
+    }
+
+    .card-title {
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(94, 73, 55, 0.85);
+      margin-bottom: 6px;
+    }
+
+    .card-message {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #5c4637;
+      min-height: 54px;
+    }
+
+    .card-note {
+      font-size: 11px;
+      color: rgba(107, 80, 59, 0.8);
+      margin-top: 8px;
+    }
+
+    .chips {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(110, 84, 60, 0.45);
+      background: rgba(252, 244, 232, 0.9);
+      color: #6b4a33;
+      cursor: default;
+    }
+
+    /* 小动物 hover / 点击效果 */
+    .clickable {
+      cursor: pointer;
+      transition: transform 0.18s ease-out;
+      transform-origin: center bottom;
+    }
+
+    .clickable:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .clickable.clicked {
+      animation: wiggle 0.55s ease-out;
+    }
+
+    @keyframes wiggle {
+      0% { transform: translateY(-2px) rotate(0deg); }
+      25% { transform: translateY(-6px) rotate(-3deg); }
+      50% { transform: translateY(-3px) rotate(2deg); }
+      75% { transform: translateY(-5px) rotate(-1.5deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    /* 小萤火虫闪烁 */
+    .firefly {
+      animation: firefly 5s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .firefly:nth-child(2) { animation-delay: 1.3s; }
+    .firefly:nth-child(3) { animation-delay: 2.4s; }
+    .firefly:nth-child(4) { animation-delay: 3.2s; }
+
+    @keyframes firefly {
+      0% { opacity: 0.1; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-4px); }
+      70% { opacity: 0.4; transform: translateY(2px); }
+      100% { opacity: 0.1; transform: translateY(0); }
+    }
+
+    .footer {
+      padding: 10px 20px 14px;
+      font-size: 11px;
+      color: rgba(227, 220, 211, 0.75);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: linear-gradient(to right, rgba(10, 10, 18, 0.85), rgba(17, 15, 25, 0.9));
+    }
+
+    .footer span {
+      opacity: 0.85;
+    }
+
+    .footer-right {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 640px) {
+      .card-panel {
+        padding: 12px 14px 14px;
+        border-radius: 20px;
+      }
+      .card-message {
+        font-size: 13px;
+      }
+      .header {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+      }
+      .hint {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="header">
+      <div>QUIET FOREST LETTER</div>
+      <div class="header-right">click a small creature · see a line</div>
+    </div>
+
+    <div class="forest-wrapper">
+      <!-- SVG 森林插画 -->
+      <svg viewBox="0 0 900 506" xmlns="http://www.w3.org/2000/svg">
+        <!-- 背景夜空 -->
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#323654"/>
+            <stop offset="45%" stop-color="#111427"/>
+            <stop offset="100%" stop-color="#05050c"/>
+          </linearGradient>
+          <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#272338"/>
+            <stop offset="40%" stop-color="#201529"/>
+            <stop offset="100%" stop-color="#0b0612"/>
+          </linearGradient>
+          <radialGradient id="shrubPink" cx="50%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="#ff6a8c" />
+            <stop offset="40%" stop-color="#e23d63" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+          </radialGradient>
+          <radialGradient id="bunnyBody" cx="30%" cy="20%" r="70%">
+            <stop offset="0%" stop-color="#f7b7aa" />
+            <stop offset="40%" stop-color="#d97e70" />
+            <stop offset="100%" stop-color="#a4534a" />
+          </radialGradient>
+          <radialGradient id="foxBody" cx="30%" cy="20%" r="70%">
+            <stop offset="0%" stop-color="#ffc99a" />
+            <stop offset="45%" stop-color="#e78b4c" />
+            <stop offset="100%" stop-color="#b0572b" />
+          </radialGradient>
+          <radialGradient id="owlBody" cx="30%" cy="20%" r="70%">
+            <stop offset="0%" stop-color="#ffeed0" />
+            <stop offset="40%" stop-color="#d89c63" />
+            <stop offset="100%" stop-color="#8d5b3c" />
+          </radialGradient>
+          <radialGradient id="fireflyGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff8c1"/>
+            <stop offset="100%" stop-color="rgba(255,248,193,0)"/>
+          </radialGradient>
+        </defs>
+
+        <!-- 夜空 -->
+        <rect x="0" y="0" width="900" height="506" fill="url(#skyGrad)" />
+
+        <!-- 远处星点 -->
+        <g fill="#f8f1da" opacity="0.7">
+          <circle cx="120" cy="60" r="1.3"/>
+          <circle cx="260" cy="40" r="1.1"/>
+          <circle cx="410" cy="70" r="1.4"/>
+          <circle cx="620" cy="55" r="1.2"/>
+          <circle cx="780" cy="45" r="1.1"/>
+          <circle cx="840" cy="80" r="1.1"/>
+        </g>
+
+        <!-- 深色树林 -->
+        <g fill="#151624">
+          <rect x="40" y="80" width="40" height="300" rx="14"/>
+          <rect x="130" y="70" width="34" height="310" rx="14"/>
+          <rect x="210" y="60" width="36" height="320" rx="14"/>
+          <rect x="310" y="72" width="34" height="315" rx="14"/>
+          <rect x="410" y="58" width="38" height="330" rx="18"/>
+          <rect x="520" y="70" width="34" height="315" rx="14"/>
+          <rect x="610" y="60" width="36" height="320" rx="18"/>
+          <rect x="710" y="80" width="34" height="303" rx="14"/>
+          <rect x="800" y="72" width="36" height="312" rx="14"/>
+        </g>
+
+        <!-- 深林里的叶影 -->
+        <g opacity="0.4" fill="#34425b">
+          <ellipse cx="110" cy="140" rx="60" ry="18"/>
+          <ellipse cx="260" cy="130" rx="72" ry="20"/>
+          <ellipse cx="380" cy="150" rx="64" ry="18"/>
+          <ellipse cx="520" cy="135" rx="70" ry="22"/>
+          <ellipse cx="650" cy="145" rx="68" ry="20"/>
+          <ellipse cx="790" cy="140" rx="62" ry="18"/>
+        </g>
+
+        <!-- 粉色灌木 -->
+        <g opacity="0.85">
+          <ellipse cx="140" cy="260" rx="130" ry="60" fill="url(#shrubPink)"/>
+          <ellipse cx="450" cy="260" rx="180" ry="70" fill="url(#shrubPink)"/>
+          <ellipse cx="740" cy="260" rx="150" ry="65" fill="url(#shrubPink)"/>
+        </g>
+
+        <!-- 前景地面 -->
+        <rect x="0" y="270" width="900" height="236" fill="url(#groundGrad)" />
+
+        <!-- 前景植物（简化版，营造氛围） -->
+        <g stroke-linecap="round">
+          <!-- 左侧 -->
+          <g stroke="#f3d29a" stroke-width="4" opacity="0.8">
+            <path d="M60 330 Q70 300 80 270"/>
+            <path d="M90 340 Q100 305 110 275"/>
+          </g>
+          <g stroke="#f7f0c0" stroke-width="3" opacity="0.85">
+            <path d="M120 360 Q130 330 140 305"/>
+            <path d="M135 355 Q145 330 155 308"/>
+          </g>
+          <g stroke="#9ed48e" stroke-width="3" opacity="0.9">
+            <path d="M160 350 Q170 320 180 295"/>
+            <path d="M178 352 Q187 323 196 298"/>
+          </g>
+
+          <!-- 中间 -->
+          <g stroke="#f4c9aa" stroke-width="3">
+            <path d="M360 360 Q370 330 380 300"/>
+            <path d="M380 362 Q390 330 400 305"/>
+          </g>
+          <g stroke="#d5f0a6" stroke-width="3">
+            <path d="M420 355 Q430 325 440 298"/>
+            <path d="M438 353 Q448 322 458 294"/>
+          </g>
+
+          <!-- 右侧 -->
+          <g stroke="#f3d29a" stroke-width="4">
+            <path d="M710 352 Q720 322 730 295"/>
+            <path d="M735 355 Q745 323 755 298"/>
+          </g>
+          <g stroke="#a0ddb2" stroke-width="3">
+            <path d="M770 360 Q780 330 790 305"/>
+            <path d="M790 352 Q800 325 810 298"/>
+          </g>
+        </g>
+
+        <!-- 前景蘑菇 -->
+        <g class="clickable" data-creature="mushrooms">
+          <g transform="translate(220,332)">
+            <g fill="#f3a98b" stroke="#b85c44" stroke-width="2">
+              <ellipse cx="0" cy="0" rx="20" ry="12"/>
+              <ellipse cx="32" cy="-6" rx="18" ry="11"/>
+              <ellipse cx="60" cy="2" rx="18" ry="11"/>
+            </g>
+            <g stroke="#b2473a" stroke-width="3">
+              <line x1="-2" y1="8" x2="-2" y2="40"/>
+              <line x1="30" y1="4" x2="30" y2="42"/>
+              <line x1="58" y1="10" x2="58" y2="44"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- 小兔子 -->
+        <g class="clickable" data-creature="rabbit" transform="translate(110,320)">
+          <!-- 身体 -->
+          <ellipse cx="0" cy="32" rx="42" ry="30" fill="url(#bunnyBody)" />
+          <!-- 头 -->
+          <ellipse cx="34" cy="18" rx="18" ry="20" fill="url(#bunnyBody)" />
+          <!-- 耳朵 -->
+          <g fill="url(#bunnyBody)">
+            <rect x="31" y="-10" width="8" height="30" rx="4"/>
+            <rect x="43" y="-6" width="8" height="28" rx="4"/>
+          </g>
+          <!-- 眼睛 -->
+          <circle cx="39" cy="16" r="2.2" fill="#2b1111"/>
+          <!-- 鼻子和嘴 -->
+          <circle cx="46" cy="22" r="1.7" fill="#5e2b2a"/>
+          <path d="M47 24 Q50 26 52 25" stroke="#5e2b2a" stroke-width="1.3" fill="none"/>
+          <!-- 尾巴 -->
+          <ellipse cx="-34" cy="32" rx="11" ry="10" fill="#f6d2c9" />
+        </g>
+
+        <!-- 猫头鹰 -->
+        <g class="clickable" data-creature="owl" transform="translate(70,210)">
+          <!-- 身体 -->
+          <ellipse cx="0" cy="22" rx="16" ry="22" fill="url(#owlBody)" />
+          <!-- 脸 -->
+          <ellipse cx="0" cy="10" rx="14" ry="14" fill="#fdf5dd" />
+          <!-- 眼睛 -->
+          <circle cx="-5" cy="8" r="2.5" fill="#3b2419" />
+          <circle cx="5" cy="8" r="2.5" fill="#3b2419" />
+          <!-- 嘴 -->
+          <polygon points="0,12 3,16 -3,16" fill="#c47434" />
+          <!-- 翅膀 -->
+          <path d="M-15 18 Q-22 28 -14 34" stroke="#8d5b3c" stroke-width="4" stroke-linecap="round" />
+          <path d="M15 18 Q22 28 14 34" stroke="#8d5b3c" stroke-width="4" stroke-linecap="round" />
+          <!-- 树枝 -->
+          <line x1="-22" y1="40" x2="22" y2="40" stroke="#5a3a26" stroke-width="4" stroke-linecap="round"/>
+        </g>
+
+        <!-- 小狐狸 -->
+        <g class="clickable" data-creature="fox" transform="translate(700,350)">
+          <!-- 身体 -->
+          <ellipse cx="0" cy="18" rx="40" ry="20" fill="url(#foxBody)" />
+          <!-- 头 -->
+          <ellipse cx="-30" cy="8" rx="18" ry="16" fill="url(#foxBody)" />
+          <!-- 耳朵 -->
+          <polygon points="-40,-4 -32,8 -48,6" fill="#e6914c"/>
+          <polygon points="-20,-4 -28,8 -12,6" fill="#e6914c"/>
+          <!-- 面部白色 -->
+          <path d="M-42 8 Q-30 22 -18 8" fill="#fbe8d2"/>
+          <!-- 眼睛 -->
+          <circle cx="-32" cy="6" r="2.1" fill="#3a2415"/>
+          <circle cx="-23" cy="6" r="2.1" fill="#3a2415"/>
+          <!-- 鼻子 -->
+          <circle cx="-18" cy="11" r="2" fill="#3a2415"/>
+          <!-- 尾巴 -->
+          <path d="M28 20 Q52 22 70 10 Q78 24 70 36 Q50 30 32 28" fill="#e78b4c"/>
+          <path d="M64 14 Q74 22 68 30 Q60 26 56 22" fill="#fbe8d2"/>
+        </g>
+
+        <!-- 小刺猬 -->
+        <g class="clickable" data-creature="hedgehog" transform="translate(420,360)">
+          <ellipse cx="0" cy="18" rx="24" ry="16" fill="#c89b67"/>
+          <path d="M-24 20 Q-26 4 -10 2 Q-4 -8 4 -2 Q14 2 22 10" fill="#7e5a3b"/>
+          <circle cx="8" cy="16" r="2" fill="#3c2416"/>
+          <circle cx="13" cy="18" r="1.3" fill="#3c2416"/>
+        </g>
+
+        <!-- 萤火虫 -->
+        <g opacity="0.9">
+          <g class="firefly">
+            <circle cx="340" cy="180" r="7" fill="url(#fireflyGlow)" />
+            <circle cx="340" cy="180" r="2" fill="#fff8c1" />
+          </g>
+          <g class="firefly">
+            <circle cx="510" cy="140" r="7" fill="url(#fireflyGlow)" />
+            <circle cx="510" cy="140" r="2" fill="#fff8c1" />
+          </g>
+          <g class="firefly">
+            <circle cx="630" cy="190" r="7" fill="url(#fireflyGlow)" />
+            <circle cx="630" cy="190" r="2" fill="#fff8c1" />
+          </g>
+          <g class="firefly">
+            <circle cx="260" cy="200" r="7" fill="url(#fireflyGlow)" />
+            <circle cx="260" cy="200" r="2" fill="#fff8c1" />
+          </g>
+        </g>
+      </svg>
+
+      <div class="card-panel">
+        <div class="card-title">A SMALL QUIET WISH</div>
+        <div class="card-message" id="cardMessage">
+          May this little forest give you a pocket of calm, even if it is just for a moment.
+        </div>
+        <div class="card-note">
+          Try tapping the rabbit, the owl, the fox, the mushrooms, or the tiny hedgehog.
+          Each of them is keeping a different line for you.
+        </div>
+        <div class="chips">
+          <div class="chip">no need to reply</div>
+          <div class="chip">just a small greeting</div>
+        </div>
+      </div>
+
+      <div class="hint">tap a creature · it will move a little and tell you something</div>
+    </div>
+
+    <div class="footer">
+      <span>Forest mood · somewhere between autumn and winter.</span>
+      <span class="footer-right">SOFT · QUIET · LIGHT</span>
+    </div>
+  </div>
+
+  <script>
+    const lines = {
+      rabbit: [
+        "May today surprise you in a soft, almost quiet way.",
+        "May you stumble on something small and nice, the way a rabbit finds clover.",
+        "May your worries hop a little farther away than usual.",
+      ],
+      owl: [
+        "May you feel a little wiser about your own pace tonight.",
+        "May the late hours be kind to you, not heavy.",
+        "May you remember that even in dark woods, something is keeping watch.",
+      ],
+      fox: [
+        "May you keep a small, secret corner of joy just for yourself.",
+        "May some path you choose soon feel lighter than you thought.",
+        "May you feel allowed to be clever, playful, and still gentle.",
+      ],
+      mushrooms: [
+        "May something unexpected grow quietly in your favour.",
+        "May small, hidden things turn out to be on your side.",
+        "May you feel okay taking root slowly, out of the spotlight.",
+      ],
+      hedgehog: [
+        "May you feel safe enough to uncurl, even just a little.",
+        "May you meet people who understand both your spines and your softness.",
+        "May you rest without needing to be useful for a while.",
+      ]
+    };
+
+    const defaultLine =
+      "May this little forest give you a pocket of calm, even if it is just for a moment.";
+
+    const cardMessage = document.getElementById("cardMessage");
+    const clickables = document.querySelectorAll(".clickable");
+
+    clickables.forEach(el => {
+      el.addEventListener("click", () => {
+        const creature = el.getAttribute("data-creature");
+        const list = lines[creature] || [defaultLine];
+        const text = list[Math.floor(Math.random() * list.length)];
+        cardMessage.textContent = text;
+
+        // 触发轻微抖动动画
+        el.classList.remove("clicked");
+        void el.offsetWidth; // 重置动画
+        el.classList.add("clicked");
+      });
+    });
+  </script>
+</body>
+</html>
